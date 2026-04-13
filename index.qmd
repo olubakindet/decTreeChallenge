@@ -348,6 +348,18 @@ plt.show()
 
 3. **Are There Any Suggestions for Implementing Decision Trees in Python With Prioper Categorical Handling?** Please poke around the Internet (AI is not as helpful with new libraries) for suggestions on how to implement decision trees in Python with better (i.e. not one-hot encoding) categorical handling.  Please provide a link to the source and a quote from the source.  There is not right answer here, but please provide a thoughtful answer, I am curious to see what you find.
 
+### Answer 1: Numerical vs Categorical Encoding
+
+Zip code should be modeled categorically, not numerically, because zip codes are non-ordinal labels. A house in zip code 50013 is not inherently "more" than a house in 50012 in the same way a larger lot area is more than a smaller one. When zip code is left as a number, the tree is forced to create threshold rules such as `zipCode > 50012.5`. That split has arithmetic form but no business meaning. It treats neighborhood identity as if it were a continuous scale, which can suppress true neighborhood effects or misstate them. One-hot encoding is a practical correction in scikit-learn because it converts each zip code into a direct membership question: is the home in this neighborhood or not. That maps to how buyers and sellers actually think about location. For this problem, zip code is a non-ordinal categorical variable and should always be modeled as categorical.
+
+### Answer 2: R vs Python Implementation Differences
+
+R and Python differ because `rpart` can split categorical variables directly, while scikit-learn trees cannot. In CART-style factor handling, a split can compare groups of levels in one step, such as whether a property belongs to a subset of neighborhoods, which keeps neighborhood structure inside one predictor. In scikit-learn, the model cannot do this natively, and the official documentation states: "Able to handle both numerical and categorical data. However, the scikit-learn implementation does not support categorical variables for now." That limitation pushes Python users toward one-hot encoding, which breaks a single zip code feature into several binary columns. The tree then evaluates each indicator independently, so interpretation shifts from one coherent neighborhood variable to many separate flags. This often makes feature importance less clean for business communication because "zipCode" is no longer a single ranked driver. For this specific task, R gives a more natural representation of categorical splits, while Python requires preprocessing workarounds that can reduce interpretability.
+
+### Answer 3: Python Alternatives with Better Categorical Handling
+
+A strong Python alternative is LightGBM, which supports categorical features without forcing one-hot encoding as the default path. LightGBM documentation states: "LightGBM offers good accuracy with integer-encoded categorical features. LightGBM applies Fisher (1958) to find the optimal split over categories as described here. This often performs better than one-hot encoding." This matters because it lets the model treat category structure as category structure, rather than as a set of unrelated dummy columns. In practice, that can produce cleaner split logic and more faithful importance patterns when business variables are truly nominal, like zip code, product type, or channel labels. Source: [LightGBM Advanced Topics - Categorical Feature Support](https://lightgbm.readthedocs.io/en/latest/Advanced-Topics.html#categorical-feature-support).
+
 ## Grading Rubric 🎓
 
 ::: {.callout-important}
